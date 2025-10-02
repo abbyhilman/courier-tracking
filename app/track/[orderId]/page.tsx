@@ -5,22 +5,32 @@ import { doc, onSnapshot } from "firebase/firestore";
 import TrackingMap from "@/components/TrackingMap";
 import { db } from "@/lib/firebease";
 
+type Order = {
+  customerName: string;
+  customerAddress: string;
+  status: string;
+  location: { lat: number; lng: number };
+  destination: { lat: number; lng: number };
+};
+
 export default function Page() {
   const { orderId } = useParams() as { orderId: string };
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [osrmRoute, setOsrmRoute] = useState<[number, number][]>([]);
-  const [eta, setEta] = useState<string | null>(null);
+  const [eta, setEta] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!orderId) return;
     const unsub = onSnapshot(doc(db, "orders", orderId), (snap) => {
-      if (snap.exists()) setOrder(snap.data());
-      else setOrder(null);
+      if (snap.exists()) {
+        setOrder(snap.data() as Order);
+      } else {
+        setOrder(null);
+      }
     });
     return () => unsub();
   }, [orderId]);
 
-  // When order.location changes, fetch OSRM route from /api/osrm/route
   useEffect(() => {
     if (!order?.location || !order?.destination) return;
 
@@ -36,8 +46,8 @@ export default function Page() {
         });
         const data = await res.json();
         if (data?.routes?.length) {
-          const coords = data.routes[0].geometry.coordinates.map(
-            (c: [number, number]) => [c[1], c[0]] as [number, number]
+          const coords: [number, number][] = data.routes[0].geometry.coordinates.map(
+            (c: [number, number]) => [c[1], c[0]]
           );
           setOsrmRoute(coords);
           const durationSec = data.routes[0].duration;
@@ -55,12 +65,9 @@ export default function Page() {
     order?.destination?.lng,
   ]);
 
-  if (!order)
-    return (
-      <div style={{ padding: 20 }}>
-        Order tidak ditemukan atau belum tersedia.
-      </div>
-    );
+  if (!order) {
+    return <div style={{ padding: 20 }}>Order tidak ditemukan atau belum tersedia.</div>;
+  }
 
   return (
     <main style={{ padding: 18, maxWidth: 1000, margin: "0 auto" }}>
@@ -89,12 +96,12 @@ export default function Page() {
 
       <TrackingMap
         courier={{
-          lat: order.location?.lat ?? 0,
-          lng: order.location?.lng ?? 0,
+          lat: order.location.lat,
+          lng: order.location.lng,
         }}
         destination={[order.destination.lat, order.destination.lng]}
         osrmRoute={osrmRoute}
-        eta={eta ?? undefined}
+        eta={eta}
       />
     </main>
   );
