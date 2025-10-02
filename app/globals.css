@@ -40,3 +40,13 @@ a {
     color-scheme: dark;
   }
 }
+
+
+/* app/globals.css */
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, Roboto, sans-serif;
+  background: #f7fafc;
+  color: #111827;
+}
