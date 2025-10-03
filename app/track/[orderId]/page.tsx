@@ -32,17 +32,115 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c;
 }
 
+// Komponen Shimmer Skeleton untuk loading state
+const ShimmerSkeleton = () => (
+  <>
+    <style jsx>{`
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+      .shimmer {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite linear;
+        border-radius: 4px;
+      }
+      .shimmer-line {
+        height: 16px;
+        margin-bottom: 12px;
+      }
+      .shimmer-box {
+        height: 400px;
+        border-radius: 8px;
+      }
+    `}</style>
+    <main style={{ padding: 18, maxWidth: 1000, margin: "0 auto" }}>
+      {/* Header placeholder */}
+      <div
+        className="shimmer shimmer-line"
+        style={{ width: "200px", height: "24px", marginBottom: 20 }}
+      ></div>
+      
+      {/* Info box placeholder */}
+      <div
+        style={{
+          marginBottom: 12,
+          padding: 12,
+          background: "#fff",
+          borderRadius: 8,
+        }}
+      >
+        <div className="shimmer shimmer-line" style={{ width: "100%" }}></div>
+        <div className="shimmer shimmer-line" style={{ width: "80%" }}></div>
+        <div className="shimmer shimmer-line" style={{ width: "90%" }}></div>
+        <div className="shimmer shimmer-line" style={{ width: "70%" }}></div>
+      </div>
+
+      {/* Map placeholder */}
+      <div className="shimmer shimmer-box"></div>
+    </main>
+  </>
+);
+
+// Komponen Not Found dengan animasi sederhana (fade-in)
+const NotFoundMessage = () => (
+  <div
+    style={{
+      padding: 40,
+      textAlign: "center",
+      maxWidth: 1000,
+      margin: "0 auto",
+      opacity: 0,
+      animation: "fadeIn 0.8s ease-in-out forwards",
+    }}
+  >
+    <style jsx>{`
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `}</style>
+    <h2 style={{ color: "#666", marginBottom: 10 }}>Order Tidak Ditemukan</h2>
+    <p style={{ color: "#999" }}>Pesanan dengan ID ini tidak ditemukan atau belum tersedia. Pastikan ID order benar dan coba lagi nanti.</p>
+  </div>
+);
+
 export default function Page() {
   const { orderId } = useParams() as { orderId: string };
   const [order, setOrder] = useState<Order | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [osrmRoute, setOsrmRoute] = useState<[number, number][]>([]);
   const [eta, setEta] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      setIsLoading(false);
+      return;
+    }
     const unsub = onSnapshot(doc(db, "orders", orderId), (snap) => {
-      if (snap.exists()) setOrder(snap.data() as Order);
-      else setOrder(null);
+      if (snap.exists()) {
+        setOrder(snap.data() as Order);
+      } else {
+        setOrder(null);
+      }
+      // Set loading false setelah snapshot pertama (baik data ada atau tidak)
+      setIsLoading(false);
     });
     return () => unsub();
   }, [orderId]);
@@ -122,18 +220,41 @@ export default function Page() {
     order?.location?.longitude,
     order?.destination?.latitude,
     order?.destination?.longitude,
-    order?.location, order?.destination
   ]);
 
-  if (!order)
-    return (
-      <div style={{ padding: 20 }}>
-        Order tidak ditemukan atau belum tersedia.
-      </div>
-    );
+  // Loading state dengan shimmer animation
+  if (isLoading) {
+    return <ShimmerSkeleton />;
+  }
 
+  // Not found state dengan fade-in animation
+  if (!order) {
+    return <NotFoundMessage />;
+  }
+
+  // Main content dengan fade-in animation sederhana
   return (
-    <main style={{ padding: 18, maxWidth: 1000, margin: "0 auto" }}>
+    <main
+      style={{
+        padding: 18,
+        maxWidth: 1000,
+        margin: "0 auto",
+        opacity: 0,
+        animation: "contentFadeIn 0.5s ease-in-out forwards",
+      }}
+    >
+      <style jsx>{`
+        @keyframes contentFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
       <h1 style={{ marginBottom: 10 }}>Lacak Pesanan</h1>
       <div
         style={{
@@ -141,6 +262,7 @@ export default function Page() {
           padding: 12,
           background: "#fff",
           borderRadius: 8,
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)", // Tambahan untuk UX lebih baik
         }}
       >
         <div>
