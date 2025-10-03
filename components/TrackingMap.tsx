@@ -1,12 +1,9 @@
-// components/TrackingMap.tsx
 "use client";
 
-import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useRef } from "react";
-
-
 
 // icon kurir & tujuan
 const courierIcon = new L.Icon({
@@ -35,10 +32,9 @@ function AnimatedCourierMarker({ courier }: { courier: { lat: number; lng: numbe
     if (markerRef.current) {
       const marker = markerRef.current;
 
-      // @ts-ignore - slideto is from leaflet-marker-slideto plugin
       if (marker.slideTo) {
         // animate ke lokasi baru
-        // durasi bisa disesuaikan: 1000 ms = 1 detik
+        // durasi bisa disesuaikan: 1500 ms = 1 detik
         // keepAtCenter: true agar map ikut geser mengikuti kurir
         marker.slideTo([courier.lat, courier.lng], {
           duration: 1500,

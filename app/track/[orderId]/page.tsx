@@ -1,4 +1,3 @@
-// app/track/[orderId]/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -216,10 +215,8 @@ export default function Page() {
       }
     })();
   }, [
-    order?.location?.latitude,
-    order?.location?.longitude,
-    order?.destination?.latitude,
-    order?.destination?.longitude,
+    order?.location,
+    order?.destination,
   ]);
 
   // Loading state dengan shimmer animation
